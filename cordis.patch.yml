@@ -1,0 +1,4 @@
+# dsh-gui-guard bundle patch: 把插件行插进 web profile 名单。
+- insert:
+    - id: plugin-gui-guard
+      name: 'dsh-gui-guard'
