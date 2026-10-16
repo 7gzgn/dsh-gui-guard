@@ -6,6 +6,7 @@
  */
 
 import { runAction } from '../lib/index.js';
+import * as plugin from '../lib/index.js';
 
 let failed = 0;
 function check(name, cond, extra) {
@@ -74,6 +75,38 @@ if (probe.ok === true) {
 console.log('\n⑥ type 的错误路径');
 const badType = await runAction('type', { window: 'dsh-gui-guard-no-such-window-xyz', text: 'x' });
 check('找不到窗口时 ok=false', badType.ok === false);
+
+console.log('\n⑦ 工具返回值必须是 lossless JSON（宿主会校验；undefined 会让整次调用直接判失败）');
+let registered = null;
+plugin.apply({
+  tools: { register: (def) => { registered = def; return () => {}; } },
+  systemPrompt: { section: () => () => {} },
+}, { announceToAgent: false });
+check('apply 注册了工具', registered !== null && typeof registered.execute === 'function');
+
+/** 找出对象里所有 undefined 的路径 —— 宿主校验的就是这个。 */
+function findUndefined(value, path = '$', out = []) {
+  if (value === undefined) { out.push(path); return out; }
+  if (value === null || typeof value !== 'object') return out;
+  if (Array.isArray(value)) {
+    value.forEach((v, i) => findUndefined(v, `${path}[${i}]`, out));
+    return out;
+  }
+  for (const [k, v] of Object.entries(value)) findUndefined(v, `${path}.${k}`, out);
+  return out;
+}
+
+for (const args of [
+  { action: 'list' },
+  { action: 'probe', window: 'dsh-gui-guard-no-such-window-xyz' },
+  { action: 'click', window: 'x' },
+  { action: 'type', window: 'x' },
+  { action: 'bogus-action' },
+]) {
+  const res = await registered.execute(args);
+  const bad = findUndefined(res);
+  check(`execute(${JSON.stringify(args)}) 无 undefined 字段`, bad.length === 0, bad.join(', '));
+}
 
 console.log(failed === 0 ? '\n全部通过 ✅' : `\n${failed} 项失败 ❌`);
 process.exit(failed === 0 ? 0 : 1);
