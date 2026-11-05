@@ -1,7 +1,7 @@
 {
   "name": "dsh-gui-guard",
   "version": "0.1.1",
-  "description": "Windows GUI automation reliability layer: probe whether a window is minimized, foreground or DPI-scaled, then click and type with the coordinate space and activation order handled for you. Zero dependencies, local only.",
+  "description": "先确认这个窗口现在能不能安全操作，再动手点击或输入——最小化、不在前台、DPI 缩放都替你处理掉。 Windows window-operation reliability layer: probe whether a window is minimized, in the foreground or DPI-scaled, then click and type with the coordinate space handled.",
   "type": "module",
   "main": "lib/index.js",
   "exports": {
@@ -53,7 +53,8 @@
     "compatibility": {
       "dshReleases": {
         "0.2.0-rc.2": "compatible",
-        "0.2.1-rc.2": "compatible"
+        "0.2.1-rc.2": "compatible",
+        "0.2.2-rc.1": "compatible"
       }
     },
     "bundle": {
